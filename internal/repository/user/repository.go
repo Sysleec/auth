@@ -3,10 +3,10 @@ package user
 import (
 	"context"
 
+	"github.com/Sysleec/auth/internal/model"
 	"github.com/Sysleec/auth/internal/repository"
 	"github.com/Sysleec/auth/internal/repository/user/converter"
-	"github.com/Sysleec/auth/internal/repository/user/model"
-	desc "github.com/Sysleec/auth/pkg/user_v1"
+	modelRepo "github.com/Sysleec/auth/internal/repository/user/model"
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	sq "github.com/Masterminds/squirrel"
@@ -33,7 +33,7 @@ func NewRepo(db *pgxpool.Pool) repository.UserRepository {
 	return &repo{db: db}
 }
 
-func (r *repo) Create(ctx context.Context, usr *desc.CreateRequest) (int64, error) {
+func (r *repo) Create(ctx context.Context, usr *model.User) (int64, error) {
 	builder := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Columns(nameColumn, emailColumn, passColumn).
@@ -55,7 +55,7 @@ func (r *repo) Create(ctx context.Context, usr *desc.CreateRequest) (int64, erro
 	return id, nil
 }
 
-func (r *repo) Get(ctx context.Context, id int64) (*desc.GetResponse, error) {
+func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 	builder := sq.Select(idColumn, nameColumn, emailColumn, isAdminColumn, createdAtColumn, updatedAtColumn).
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
@@ -66,7 +66,7 @@ func (r *repo) Get(ctx context.Context, id int64) (*desc.GetResponse, error) {
 		return nil, err
 	}
 
-	var usr model.User
+	var usr modelRepo.User
 
 	err = r.db.QueryRow(ctx, query, args...).Scan(&usr.ID, &usr.Name, &usr.Email, &usr.Role, &usr.CreatedAt, &usr.UpdatedAt)
 	if err != nil {

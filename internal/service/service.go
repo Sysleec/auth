@@ -1,4 +1,4 @@
-package repository
+package service
 
 import (
 	"context"
@@ -6,8 +6,7 @@ import (
 	"github.com/Sysleec/auth/internal/model"
 )
 
-// UserRepository is an interface for user repository
-type UserRepository interface {
+type UserService interface {
 	Create(ctx context.Context, usr *model.User) (int64, error)
 	Get(ctx context.Context, id int64) (*model.User, error)
 }

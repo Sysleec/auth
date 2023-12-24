@@ -9,8 +9,10 @@ import (
 
 	"github.com/Sysleec/auth/internal/config"
 	"github.com/Sysleec/auth/internal/config/env"
-	"github.com/Sysleec/auth/internal/repository"
-	"github.com/Sysleec/auth/internal/repository/user"
+	"github.com/Sysleec/auth/internal/converter"
+	userRepository "github.com/Sysleec/auth/internal/repository/user"
+	"github.com/Sysleec/auth/internal/service"
+	userService "github.com/Sysleec/auth/internal/service/user"
 	desc "github.com/Sysleec/auth/pkg/user_v1"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
@@ -25,11 +27,11 @@ func init() {
 
 type server struct {
 	desc.UnimplementedUserV1Server
-	userRepository repository.UserRepository
+	userService service.UserService
 }
 
 func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
-	id, err := s.userRepository.Create(ctx, req)
+	id, err := s.userService.Create(ctx, converter.ToUserFromDesc(req))
 	if err != nil {
 		return nil, err
 	}
@@ -39,14 +41,14 @@ func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.Cre
 }
 
 func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
-	user, err := s.userRepository.Get(ctx, req.GetId())
+	user, err := s.userService.Get(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 
 	fmt.Printf("got user: %+v\n", user)
 
-	return user, nil
+	return converter.ToUserFromService(user), nil
 }
 
 func main() {
@@ -79,11 +81,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	userRepo := user.NewRepo(pool)
+	userRepo := userRepository.NewRepo(pool)
+	userSrv := userService.NewService(userRepo)
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterUserV1Server(s, &server{userRepository: userRepo})
+	desc.RegisterUserV1Server(s, &server{userService: userSrv})
 
 	fmt.Printf("starting server at %s\n", lis.Addr())
 
