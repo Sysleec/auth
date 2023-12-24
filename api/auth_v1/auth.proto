@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-package user_v1;
+package auth_v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-option go_package = "github.com/Sysleec/auth/grpc/pkg/user_v1;user_v1";
+option go_package = "github.com/Sysleec/auth/grpc/pkg/auth_v1;auth_v1";
 
-service UserV1 {
+service AuthV1 {
   rpc Create(CreateRequest) returns (CreateResponse);
   rpc Get(GetRequest) returns (GetResponse);
   rpc Update(UpdateRequest) returns (google.protobuf.Empty);
