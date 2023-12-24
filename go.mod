@@ -1,6 +1,6 @@
 module github.com/Sysleec/auth
 
-go 1.21.5
+go 1.21.4
 
 require (
 	github.com/golang/protobuf v1.5.3
