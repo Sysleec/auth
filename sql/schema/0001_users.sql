@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL,
         password TEXT NOT NULL,
-        is_admin BOOLEAN NOT NULL DEFAULT false,
+        role SMALLINT NOT NULL DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
     );

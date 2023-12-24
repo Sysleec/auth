@@ -8,8 +8,8 @@ on:
 
 env:
   REGISTRY: "registry.hub.docker.com"
-  IMAGE_NAME: "auth"
-  CONTAINER_NAME: "auth-server-container"
+  IMAGE_NAME: "user-server"
+  CONTAINER_NAME: "user-server-container"
 
 jobs:
   image-build-and-push:

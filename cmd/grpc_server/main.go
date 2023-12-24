@@ -9,7 +9,9 @@ import (
 
 	"github.com/Sysleec/auth/internal/config"
 	"github.com/Sysleec/auth/internal/config/env"
-	desc "github.com/Sysleec/auth/pkg/auth_v1"
+	"github.com/Sysleec/auth/internal/repository"
+	"github.com/Sysleec/auth/internal/repository/user"
+	desc "github.com/Sysleec/auth/pkg/user_v1"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -22,8 +24,29 @@ func init() {
 }
 
 type server struct {
-	desc.UnimplementedAuthV1Server
-	pool *pgxpool.Pool
+	desc.UnimplementedUserV1Server
+	userRepository repository.UserRepository
+}
+
+func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
+	id, err := s.userRepository.Create(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("created user with id %d", id)
+
+	return &desc.CreateResponse{Id: id}, nil
+}
+
+func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
+	user, err := s.userRepository.Get(ctx, req.GetId())
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("got user: %+v\n", user)
+
+	return user, nil
 }
 
 func main() {
@@ -56,9 +79,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	userRepo := user.NewRepo(pool)
+
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterAuthV1Server(s, &server{pool: pool})
+	desc.RegisterUserV1Server(s, &server{userRepository: userRepo})
 
 	fmt.Printf("starting server at %s\n", lis.Addr())
 

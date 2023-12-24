@@ -23,16 +23,16 @@ get-deps:
 
 
 generate:
-	make generate-auth-api
+	make generate-user-api
 
-generate-auth-api:
-	mkdir -p pkg/auth_v1
-	protoc --proto_path api/auth_v1 \
-	--go_out=pkg/auth_v1 --go_opt=paths=source_relative \
+generate-user-api:
+	mkdir -p pkg/user_v1
+	protoc --proto_path api/user_v1 \
+	--go_out=pkg/user_v1 --go_opt=paths=source_relative \
 	--plugin=protoc-gen-go=bin/protoc-gen-go \
-	--go-grpc_out=pkg/auth_v1 --go-grpc_opt=paths=source_relative \
+	--go-grpc_out=pkg/user_v1 --go-grpc_opt=paths=source_relative \
 	--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
-	api/auth_v1/auth.proto
+	api/user_v1/user.proto
 
 build:
 	GOOS=linux GOARCH=amd64 go build -o service_linux cmd/grpc_server/main.go
