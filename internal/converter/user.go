@@ -18,6 +18,7 @@ func ToUserFromService(user *model.User) *desc.GetResponse {
 	}
 }
 
+// ToUserFromDesc converts user from gRPC to user for service
 func ToUserFromDesc(user *desc.CreateRequest) *model.User {
 	return &model.User{
 		Name:     user.Name,
