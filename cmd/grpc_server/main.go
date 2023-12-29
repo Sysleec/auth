@@ -30,6 +30,7 @@ type server struct {
 	userService service.UserService
 }
 
+// Create creates a new user
 func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
 	id, err := s.userService.Create(ctx, converter.ToUserFromDesc(req))
 	if err != nil {
@@ -40,6 +41,7 @@ func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.Cre
 	return &desc.CreateResponse{Id: id}, nil
 }
 
+// Get gets a user by id
 func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
 	user, err := s.userService.Get(ctx, req.GetId())
 	if err != nil {
