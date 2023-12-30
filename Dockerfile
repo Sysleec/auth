@@ -10,5 +10,6 @@ FROM alpine:latest
 
 WORKDIR /root/
 COPY --from=builder /github.com/Sysleec/chat-server/source/bin/chat_server .
+COPY --from=builder /github.com/Sysleec/chat-server/source/.env .
 
 CMD ["./chat_server"]
