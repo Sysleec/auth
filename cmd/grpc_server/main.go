@@ -7,11 +7,10 @@ import (
 	"log"
 	"net"
 
+	userAPI "github.com/Sysleec/auth/internal/api/user"
 	"github.com/Sysleec/auth/internal/config"
 	"github.com/Sysleec/auth/internal/config/env"
-	"github.com/Sysleec/auth/internal/converter"
 	userRepository "github.com/Sysleec/auth/internal/repository/user"
-	"github.com/Sysleec/auth/internal/service"
 	userService "github.com/Sysleec/auth/internal/service/user"
 	desc "github.com/Sysleec/auth/pkg/user_v1"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -23,34 +22,6 @@ var configPath string
 
 func init() {
 	flag.StringVar(&configPath, "config-path", ".env", "path to config file")
-}
-
-type server struct {
-	desc.UnimplementedUserV1Server
-	userService service.UserService
-}
-
-// Create creates a new user
-func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
-	id, err := s.userService.Create(ctx, converter.ToUserFromDesc(req))
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("created user with id %d", id)
-
-	return &desc.CreateResponse{Id: id}, nil
-}
-
-// Get gets a user by id
-func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
-	user, err := s.userService.Get(ctx, req.GetId())
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Printf("got user: %+v\n", user)
-
-	return converter.ToUserFromService(user), nil
 }
 
 func main() {
@@ -88,7 +59,7 @@ func main() {
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterUserV1Server(s, &server{userService: userSrv})
+	desc.RegisterUserV1Server(s, userAPI.NewServer(userSrv))
 
 	fmt.Printf("starting server at %s\n", lis.Addr())
 
