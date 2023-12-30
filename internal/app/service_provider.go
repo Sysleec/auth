@@ -27,6 +27,7 @@ type serviceProvider struct {
 	userServ *user.Server
 }
 
+// NewServiceProvider creates a new service provider
 func NewServiceProvider() *serviceProvider {
 	return &serviceProvider{}
 }

@@ -20,11 +20,13 @@ func init() {
 	flag.StringVar(&configPath, "config-path", ".env", "path to config file")
 }
 
+// App is the main app
 type App struct {
 	serviceProvider *serviceProvider
 	grpcServer      *grpc.Server
 }
 
+// NewApp creates a new app
 func NewApp(ctx context.Context) (*App, error) {
 	a := &App{}
 
@@ -36,6 +38,7 @@ func NewApp(ctx context.Context) (*App, error) {
 	return a, nil
 }
 
+// Run runs the app
 func (a *App) Run() error {
 	defer func() {
 		closer.CloseAll()
@@ -62,7 +65,7 @@ func (a *App) initDeps(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) initConfig(ctx context.Context) error {
+func (a *App) initConfig(_ context.Context) error {
 	flag.Parse()
 	err := config.Load(configPath)
 	if err != nil {
@@ -72,7 +75,7 @@ func (a *App) initConfig(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) initServiceProvider(ctx context.Context) error {
+func (a *App) initServiceProvider(_ context.Context) error {
 	a.serviceProvider = NewServiceProvider()
 
 	return nil
