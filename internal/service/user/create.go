@@ -7,10 +7,27 @@ import (
 )
 
 func (s *serv) Create(ctx context.Context, usr *model.User) (int64, error) {
-	user, err := s.userRepo.Create(ctx, usr)
+	var id int64
+
+	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
+		var errTx error
+		id, errTx = s.userRepo.Create(ctx, usr)
+		if errTx != nil {
+			return errTx
+		}
+
+		_, errTx = s.userRepo.Get(ctx, id)
+		if errTx != nil {
+			return errTx
+		}
+
+		return nil
+
+	})
+
 	if err != nil {
 		return 0, err
 	}
 
-	return user, nil
+	return id, nil
 }

@@ -3,11 +3,11 @@ package user
 import (
 	"context"
 
+	"github.com/Sysleec/auth/internal/client/db"
 	"github.com/Sysleec/auth/internal/model"
 	"github.com/Sysleec/auth/internal/repository"
 	"github.com/Sysleec/auth/internal/repository/user/converter"
 	modelRepo "github.com/Sysleec/auth/internal/repository/user/model"
-	"github.com/jackc/pgx/v4/pgxpool"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -25,11 +25,11 @@ const (
 )
 
 type repo struct {
-	db *pgxpool.Pool
+	db db.Client
 }
 
 // NewRepo creates new user repository
-func NewRepo(db *pgxpool.Pool) repository.UserRepository {
+func NewRepo(db db.Client) repository.UserRepository {
 	return &repo{db: db}
 }
 
@@ -45,9 +45,14 @@ func (r *repo) Create(ctx context.Context, usr *model.User) (int64, error) {
 		return 0, err
 	}
 
+	q := db.Query{
+		Name:     "user_repositoy.Create",
+		QueryRaw: query,
+	}
+
 	var id int64
 
-	err = r.db.QueryRow(ctx, query, args...).Scan(&id)
+	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -66,9 +71,13 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 		return nil, err
 	}
 
-	var usr modelRepo.User
+	q := db.Query{
+		Name:     "user_repositoy.Get",
+		QueryRaw: query,
+	}
 
-	err = r.db.QueryRow(ctx, query, args...).Scan(&usr.ID, &usr.Name, &usr.Email, &usr.Role, &usr.CreatedAt, &usr.UpdatedAt)
+	var usr modelRepo.User
+	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&usr.ID, &usr.Name, &usr.Email, &usr.Role, &usr.CreatedAt, &usr.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}

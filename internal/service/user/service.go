@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/Sysleec/auth/internal/client/db"
 	"github.com/Sysleec/auth/internal/repository"
 	def "github.com/Sysleec/auth/internal/service"
 )
@@ -8,12 +9,15 @@ import (
 var _ def.UserService = (*serv)(nil)
 
 type serv struct {
-	userRepo repository.UserRepository
+	userRepo  repository.UserRepository
+	txManager db.TxManager
 }
 
 // NewService returns a new user service
-func NewService(userRepo repository.UserRepository) *serv {
+func NewService(userRepo repository.UserRepository,
+	txManager db.TxManager) *serv {
 	return &serv{
-		userRepo: userRepo,
+		userRepo:  userRepo,
+		txManager: txManager,
 	}
 }

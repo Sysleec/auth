@@ -5,6 +5,9 @@ import (
 	"log"
 
 	"github.com/Sysleec/auth/internal/api/user"
+	"github.com/Sysleec/auth/internal/client/db"
+	"github.com/Sysleec/auth/internal/client/db/pg"
+	"github.com/Sysleec/auth/internal/client/db/transaction"
 	"github.com/Sysleec/auth/internal/closer"
 	"github.com/Sysleec/auth/internal/config"
 	"github.com/Sysleec/auth/internal/config/env"
@@ -12,14 +15,14 @@ import (
 	userRepository "github.com/Sysleec/auth/internal/repository/user"
 	"github.com/Sysleec/auth/internal/service"
 	userService "github.com/Sysleec/auth/internal/service/user"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type serviceProvider struct {
 	pgConfig   config.PGConfig
 	grpcConfig config.GRPCConfig
 
-	pgPool         *pgxpool.Pool
+	dbClient       db.Client
+	txManager      db.TxManager
 	userRepository repository.UserRepository
 
 	userService service.UserService
@@ -58,31 +61,37 @@ func (s *serviceProvider) GRPCConfig() config.GRPCConfig {
 	return s.grpcConfig
 }
 
-func (s *serviceProvider) PGPool(ctx context.Context) *pgxpool.Pool {
-	if s.pgPool == nil {
-		pool, err := pgxpool.Connect(ctx, s.PGConfig().DSN())
+func (s *serviceProvider) DBClient(ctx context.Context) db.Client {
+	if s.dbClient == nil {
+		client, err := pg.New(ctx, s.PGConfig().DSN())
 		if err != nil {
-			log.Fatalf("failed to connect to database: %v", err)
+			log.Fatalf("failed to create db client: %v", err)
 		}
 
-		err = pool.Ping(ctx)
+		err = client.DB().Ping(ctx)
 		if err != nil {
 			log.Fatalf("failed to ping database: %s", err.Error())
 		}
-		closer.Add(func() error {
-			pool.Close()
-			return nil
-		})
 
-		s.pgPool = pool
+		closer.Add(client.Close)
+
+		s.dbClient = client
 	}
 
-	return s.pgPool
+	return s.dbClient
+}
+
+func (s *serviceProvider) TxManager(ctx context.Context) db.TxManager {
+	if s.txManager == nil {
+		s.txManager = transaction.NewTransactionManager(s.DBClient(ctx).DB())
+	}
+
+	return s.txManager
 }
 
 func (s *serviceProvider) UserRepository(ctx context.Context) repository.UserRepository {
 	if s.userRepository == nil {
-		s.userRepository = userRepository.NewRepo(s.PGPool(ctx))
+		s.userRepository = userRepository.NewRepo(s.DBClient(ctx))
 	}
 
 	return s.userRepository
@@ -90,7 +99,10 @@ func (s *serviceProvider) UserRepository(ctx context.Context) repository.UserRep
 
 func (s *serviceProvider) UserService(ctx context.Context) service.UserService {
 	if s.userService == nil {
-		s.userService = userService.NewService(s.UserRepository(ctx))
+		s.userService = userService.NewService(
+			s.UserRepository(ctx),
+			s.TxManager(ctx),
+		)
 	}
 
 	return s.userService
