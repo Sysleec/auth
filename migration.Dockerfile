@@ -14,6 +14,7 @@ ADD sql/schema/*.sql sql/schema/
 ADD migration.sh .
 ADD .env .
 
+
 RUN chmod +x migration.sh
 
 ENTRYPOINT ["bash", "migration.sh"]
