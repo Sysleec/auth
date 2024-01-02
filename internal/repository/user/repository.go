@@ -52,7 +52,7 @@ func (r *repo) Create(ctx context.Context, usr *model.User) (int64, error) {
 
 	var id int64
 
-	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&id)
+	err = r.db.DB().ScanOneContext(ctx, &id, q, args...)
 	if err != nil {
 		return 0, err
 	}
@@ -77,7 +77,7 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 	}
 
 	var usr modelRepo.User
-	err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&usr.ID, &usr.Name, &usr.Email, &usr.Role, &usr.CreatedAt, &usr.UpdatedAt)
+	err = r.db.DB().ScanOneContext(ctx, &usr, q, args...)
 	if err != nil {
 		return nil, err
 	}
