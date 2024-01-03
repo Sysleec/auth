@@ -27,3 +27,11 @@ func ToUserFromDesc(user *desc.CreateRequest) *model.User {
 		Role:     model.Role(user.Role),
 	}
 }
+
+func ToUserFromDescUpdate(user *desc.UpdateRequest) *model.User {
+	return &model.User{
+		ID:    user.Id,
+		Name:  user.Name.Value,
+		Email: user.Email.Value,
+	}
+}

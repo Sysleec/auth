@@ -11,7 +11,7 @@ type Server struct {
 	userService service.UserService
 }
 
-// NewServer creates a new user server
+// NewServer returns a new user server
 func NewServer(userService service.UserService) *Server {
 	return &Server{userService: userService}
 }
