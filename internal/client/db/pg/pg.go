@@ -66,7 +66,7 @@ func (p *pg) ExecContext(ctx context.Context, q db.Query, args ...interface{}) (
 }
 
 func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) (pgx.Rows, error) {
-	logQuery(ctx, q, args...)
+	//logQuery(ctx, q, args...)
 
 	tx, ok := ctx.Value(TxKey).(pgx.Tx)
 	if ok {

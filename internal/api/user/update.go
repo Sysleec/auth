@@ -14,7 +14,7 @@ func (s *Server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.
 	if err != nil {
 		return &emptypb.Empty{}, err
 	}
-	fmt.Printf("updated user with id %d", req.Id)
+	fmt.Printf("updated user with id %d\n", req.Id)
 
 	return &emptypb.Empty{}, nil
 }

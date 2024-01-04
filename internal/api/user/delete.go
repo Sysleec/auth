@@ -13,7 +13,7 @@ func (s *Server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.
 	if err != nil {
 		return &emptypb.Empty{}, err
 	}
-	fmt.Printf("deleted user with id %d", req.Id)
+	fmt.Printf("deleted user with id %d\n", req.Id)
 
 	return &emptypb.Empty{}, nil
 }

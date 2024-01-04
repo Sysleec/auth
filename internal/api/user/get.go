@@ -15,7 +15,7 @@ func (s *Server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetRespon
 		return nil, err
 	}
 
-	fmt.Printf("got user: %+v\n", user)
+	fmt.Printf("got user - Id: %d | Name: %s | Email: %s\n", user.ID, user.Name, user.Email)
 
 	return converter.ToUserFromService(user), nil
 }
