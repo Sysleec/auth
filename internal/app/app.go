@@ -8,6 +8,7 @@ import (
 
 	"github.com/Sysleec/auth/internal/closer"
 	"github.com/Sysleec/auth/internal/config"
+	"github.com/Sysleec/auth/internal/interceptor"
 	desc "github.com/Sysleec/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -82,7 +83,10 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGrpcServer(ctx context.Context) error {
-	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
+	a.grpcServer = grpc.NewServer(
+		grpc.Creds(insecure.NewCredentials()),
+		grpc.UnaryInterceptor(interceptor.ValidateInterceptor),
+	)
 
 	reflection.Register(a.grpcServer)
 

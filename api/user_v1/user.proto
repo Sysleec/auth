@@ -2,9 +2,11 @@ syntax = "proto3";
 
 package user_v1;
 
+
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "validate/validate.proto";
 
 option go_package = "github.com/Sysleec/auth/grpc/pkg/user_v1;user_v1";
 
@@ -20,11 +22,11 @@ enum Role {
   admin = 1;
 }
 
-message CreateRequest {
-  string name = 1;
-  string email = 2;
-  string password = 3;
-  string password_confirm = 4;
+message CreateRequest {   
+  string name = 1 [(validate.rules).string = {min_len: 3, max_len: 12}, (validate.rules).string.pattern = "^[a-z0-9_-]$"];
+  string email = 2 [(validate.rules).string.email = true];
+  string password = 3 [(validate.rules).string.min_len = 6];
+  string password_confirm = 4 [(validate.rules).string.min_len = 6];
   Role role = 5;
 }
 
