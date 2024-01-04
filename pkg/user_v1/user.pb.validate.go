@@ -71,7 +71,7 @@ func (m *CreateRequest) validate(all bool) error {
 	if !_CreateRequest_Name_Pattern.MatchString(m.GetName()) {
 		err := CreateRequestValidationError{
 			field:  "Name",
-			reason: "value does not match regex pattern \"^[a-z0-9_-]$\"",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9_]+$\"",
 		}
 		if !all {
 			return err
@@ -243,7 +243,7 @@ var _ interface {
 	ErrorName() string
 } = CreateRequestValidationError{}
 
-var _CreateRequest_Name_Pattern = regexp.MustCompile("^[a-z0-9_-]$")
+var _CreateRequest_Name_Pattern = regexp.MustCompile("^[a-zA-Z0-9_]+$")
 
 // Validate checks the field values on CreateResponse with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

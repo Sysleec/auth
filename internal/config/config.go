@@ -4,6 +4,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type HTTPConfig interface {
+	Address() string
+}
+
 // GRPCConfig is an interface for gRPC configuration
 type GRPCConfig interface {
 	Address() string
