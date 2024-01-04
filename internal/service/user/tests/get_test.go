@@ -11,7 +11,7 @@ import (
 
 	"github.com/Sysleec/auth/internal/model"
 	"github.com/Sysleec/auth/internal/repository"
-	serviceMocks "github.com/Sysleec/auth/internal/service/mocks"
+	repoMocks "github.com/Sysleec/auth/internal/repository/mocks"
 	"github.com/Sysleec/auth/internal/service/user"
 )
 
@@ -64,7 +64,7 @@ func TestGet(t *testing.T) {
 			want: res,
 			err:  nil,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				mock := serviceMocks.NewUserServiceMock(mc)
+				mock := repoMocks.NewUserRepositoryMock(mc)
 				mock.GetMock.Expect(ctx, id).Return(res, nil)
 				return mock
 			},
@@ -78,7 +78,7 @@ func TestGet(t *testing.T) {
 			want: nil,
 			err:  repoErr,
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				mock := serviceMocks.NewUserServiceMock(mc)
+				mock := repoMocks.NewUserRepositoryMock(mc)
 				mock.GetMock.Expect(ctx, id).Return(nil, repoErr)
 				return mock
 			},

@@ -118,12 +118,12 @@ func TestCreate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			authRepoMock := tt.userRepositoryMock(mc)
+			userRepoMock := tt.userRepositoryMock(mc)
 			txTransact := transaction.NewTransactionManager(tt.txTransactorMock(mc))
-			service := user.NewService(authRepoMock, txTransact)
-			newID, err := service.Create(tt.args.ctx, tt.args.req)
+			service := user.NewService(userRepoMock, txTransact)
+			res, err := service.Create(tt.args.ctx, tt.args.req)
 			require.ErrorIs(t, err, tt.err)
-			require.Equal(t, tt.want, newID)
+			require.Equal(t, tt.want, res)
 		})
 	}
 }

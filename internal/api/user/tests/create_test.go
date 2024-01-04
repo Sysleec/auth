@@ -40,7 +40,7 @@ func TestCreate(t *testing.T) {
 			Email: email,
 		}
 
-		info = &model.User{
+		usr = &model.User{
 			Name:  name,
 			Email: email,
 		}
@@ -68,7 +68,7 @@ func TestCreate(t *testing.T) {
 			err:  nil,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, info).Return(id, nil)
+				mock.CreateMock.Expect(ctx, usr).Return(id, nil)
 				return mock
 			},
 		},
@@ -82,7 +82,7 @@ func TestCreate(t *testing.T) {
 			err:  serviceErr,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, info).Return(0, serviceErr)
+				mock.CreateMock.Expect(ctx, usr).Return(0, serviceErr)
 				return mock
 			},
 		},
