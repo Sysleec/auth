@@ -4,6 +4,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type SwaggerConfig interface {
+	Address() string
+}
+
 type HTTPConfig interface {
 	Address() string
 }
