@@ -27,3 +27,4 @@ go.work
 .vscode/
 /coverage.out
 vendor.protogen
+local.env

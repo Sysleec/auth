@@ -16,7 +16,8 @@
     window.onload = function () {
       const ui = SwaggerUIBundle({
         urls: [
-          { url: "/api.swagger.json", name: "User API V1" },
+          { url: "/api_user.swagger.json", name: "User API V1" },
+          { url: "/api_auth.swagger.json", name: "Auth API V1" },
         ],
         dom_id: "#swagger-ui",
         deepLinking: true,
