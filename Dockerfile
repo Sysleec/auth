@@ -1,15 +1,15 @@
 FROM golang:1.21.4-alpine AS builder
 
-COPY . /github.com/Sysleec/chat-server/source/
-WORKDIR /github.com/Sysleec/chat-server/source/
+COPY . /github.com/Sysleec/auth/source/
+WORKDIR /github.com/Sysleec/auth/source/
 
 RUN go mod download
-RUN go build -o ./bin/chat_server cmd/grpc_server/main.go
+RUN go build -o ./bin/auth cmd/grpc_server/main.go
 
 FROM alpine:latest
 
 WORKDIR /root/
-COPY --from=builder /github.com/Sysleec/chat-server/source/bin/chat_server .
-COPY --from=builder /github.com/Sysleec/chat-server/source/.env .
+COPY --from=builder /github.com/Sysleec/auth/source/bin/auth .
+COPY --from=builder /github.com/Sysleec/auth/source/.env .
 
-CMD ["./chat_server"]
+CMD ["./auth"]
