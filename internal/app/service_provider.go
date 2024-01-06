@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/Sysleec/auth/internal/api/access"
+	"github.com/Sysleec/auth/internal/api/auth"
 	"github.com/Sysleec/auth/internal/api/user"
 	"github.com/Sysleec/auth/internal/client/db"
 	"github.com/Sysleec/auth/internal/client/db/pg"
@@ -12,8 +14,12 @@ import (
 	"github.com/Sysleec/auth/internal/config"
 	"github.com/Sysleec/auth/internal/config/env"
 	"github.com/Sysleec/auth/internal/repository"
+	accessRepository "github.com/Sysleec/auth/internal/repository/access"
+	authRepository "github.com/Sysleec/auth/internal/repository/auth"
 	userRepository "github.com/Sysleec/auth/internal/repository/user"
 	"github.com/Sysleec/auth/internal/service"
+	accessService "github.com/Sysleec/auth/internal/service/access"
+	authService "github.com/Sysleec/auth/internal/service/auth"
 	userService "github.com/Sysleec/auth/internal/service/user"
 )
 
@@ -23,17 +29,22 @@ type serviceProvider struct {
 	httpConfig    config.HTTPConfig
 	swaggerConfig config.SwaggerConfig
 
-	dbClient       db.Client
-	txManager      db.TxManager
-	userRepository repository.UserRepository
+	dbClient         db.Client
+	txManager        db.TxManager
+	userRepository   repository.UserRepository
+	authRepository   repository.AuthRepository
+	accessRepository repository.AccessRepository
 
-	userService service.UserService
+	userService   service.UserService
+	authService   service.AuthService
+	accessService service.AccessService
 
-	userServ *user.Server
+	userImpl   *user.Implementation
+	authImpl   *auth.Implementation
+	accessImpl *access.Implementation
 }
 
-// NewServiceProvider creates a new service provider
-func NewServiceProvider() *serviceProvider {
+func newServiceProvider() *serviceProvider {
 	return &serviceProvider{}
 }
 
@@ -41,7 +52,7 @@ func (s *serviceProvider) PGConfig() config.PGConfig {
 	if s.pgConfig == nil {
 		cfg, err := env.NewPGConfig()
 		if err != nil {
-			log.Fatalf("failed to load pg config: %s", err.Error())
+			log.Fatalf("failed to get pg config: %s", err.Error())
 		}
 
 		s.pgConfig = cfg
@@ -54,7 +65,7 @@ func (s *serviceProvider) GRPCConfig() config.GRPCConfig {
 	if s.grpcConfig == nil {
 		cfg, err := env.NewGRPCConfig()
 		if err != nil {
-			log.Fatalf("failed to load grpc config: %s", err.Error())
+			log.Fatalf("failed to get grpc config: %s", err.Error())
 		}
 
 		s.grpcConfig = cfg
@@ -91,19 +102,18 @@ func (s *serviceProvider) SwaggerConfig() config.SwaggerConfig {
 
 func (s *serviceProvider) DBClient(ctx context.Context) db.Client {
 	if s.dbClient == nil {
-		client, err := pg.New(ctx, s.PGConfig().DSN())
+		cl, err := pg.New(ctx, s.PGConfig().DSN())
 		if err != nil {
 			log.Fatalf("failed to create db client: %v", err)
 		}
 
-		err = client.DB().Ping(ctx)
+		err = cl.DB().Ping(ctx)
 		if err != nil {
-			log.Fatalf("failed to ping database: %s", err.Error())
+			log.Fatalf("ping error: %s", err.Error())
 		}
+		closer.Add(cl.Close)
 
-		closer.Add(client.Close)
-
-		s.dbClient = client
+		s.dbClient = cl
 	}
 
 	return s.dbClient
@@ -136,10 +146,63 @@ func (s *serviceProvider) UserService(ctx context.Context) service.UserService {
 	return s.userService
 }
 
-func (s *serviceProvider) UserServer(ctx context.Context) *user.Server {
-	if s.userServ == nil {
-		s.userServ = user.NewServer(s.UserService(ctx))
+func (s *serviceProvider) UserImpl(ctx context.Context) *user.Implementation {
+	if s.userImpl == nil {
+		s.userImpl = user.NewImplementation(s.UserService(ctx))
 	}
 
-	return s.userServ
+	return s.userImpl
+}
+
+func (s *serviceProvider) AuthRepository(ctx context.Context) repository.AuthRepository {
+	if s.authRepository == nil {
+		s.authRepository = authRepository.NewRepo(s.DBClient(ctx))
+	}
+
+	return s.authRepository
+}
+
+func (s *serviceProvider) AuthService(ctx context.Context) service.AuthService {
+	if s.authService == nil {
+		s.authService = authService.NewService(
+			s.AuthRepository(ctx),
+			s.TxManager(ctx),
+		)
+	}
+
+	return s.authService
+}
+
+func (s *serviceProvider) AuthImpl(ctx context.Context) *auth.Implementation {
+	if s.authImpl == nil {
+		s.authImpl = auth.NewImplementation(s.AuthService(ctx))
+	}
+
+	return s.authImpl
+}
+
+func (s *serviceProvider) AccessRepository(ctx context.Context) repository.AccessRepository {
+	if s.accessRepository == nil {
+		s.accessRepository = accessRepository.NewRepo(s.DBClient(ctx))
+	}
+
+	return s.accessRepository
+}
+
+func (s *serviceProvider) AccessService(ctx context.Context) service.AccessService {
+	if s.accessService == nil {
+		s.accessService = accessService.NewService(
+			s.AccessRepository(ctx),
+			s.TxManager(ctx),
+		)
+	}
+
+	return s.accessService
+}
+func (s *serviceProvider) AccessImpl(ctx context.Context) *access.Implementation {
+	if s.accessImpl == nil {
+		s.accessImpl = access.NewImplementation(s.AccessService(ctx))
+	}
+
+	return s.accessImpl
 }

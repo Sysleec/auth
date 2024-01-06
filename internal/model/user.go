@@ -15,3 +15,8 @@ type User struct {
 
 // Role is a type for user role
 type Role int32
+
+type UserInfo struct {
+	Username string `json:"username"`
+	Role     int32  `json:"role"`
+}

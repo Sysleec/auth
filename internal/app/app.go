@@ -15,6 +15,8 @@ import (
 	"github.com/Sysleec/auth/internal/closer"
 	"github.com/Sysleec/auth/internal/config"
 	"github.com/Sysleec/auth/internal/interceptor"
+	descAccess "github.com/Sysleec/auth/pkg/access_v1"
+	descAuth "github.com/Sysleec/auth/pkg/auth_v1"
 	desc "github.com/Sysleec/auth/pkg/user_v1"
 	_ "github.com/Sysleec/auth/statik"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -121,7 +123,7 @@ func (a *App) initConfig(_ context.Context) error {
 }
 
 func (a *App) initServiceProvider(_ context.Context) error {
-	a.serviceProvider = NewServiceProvider()
+	a.serviceProvider = newServiceProvider()
 
 	return nil
 }
@@ -134,7 +136,9 @@ func (a *App) initGrpcServer(ctx context.Context) error {
 
 	reflection.Register(a.grpcServer)
 
-	desc.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserServer(ctx))
+	desc.RegisterUserV1Server(a.grpcServer, a.serviceProvider.UserImpl(ctx))
+	descAuth.RegisterAuthV1Server(a.grpcServer, a.serviceProvider.AuthImpl(ctx))
+	descAccess.RegisterAccessV1Server(a.grpcServer, a.serviceProvider.AccessImpl(ctx))
 
 	return nil
 }

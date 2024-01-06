@@ -9,7 +9,7 @@ import (
 )
 
 // Create creates a new user
-func (s *Server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
+func (s *Implementation) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
 	id, err := s.userService.Create(ctx, converter.ToUserFromDesc(req))
 	if err != nil {
 		return nil, err

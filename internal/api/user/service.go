@@ -5,13 +5,13 @@ import (
 	desc "github.com/Sysleec/auth/pkg/user_v1"
 )
 
-// Server is the user server
-type Server struct {
+// Implementation is the user server
+type Implementation struct {
 	desc.UnimplementedUserV1Server
 	userService service.UserService
 }
 
-// NewServer returns a new user server
-func NewServer(userService service.UserService) *Server {
-	return &Server{userService: userService}
+// NewImplementation returns a new user server
+func NewImplementation(userService service.UserService) *Implementation {
+	return &Implementation{userService: userService}
 }

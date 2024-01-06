@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s *Server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
+func (s *Implementation) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
 	_, err := s.userService.Update(ctx, converter.ToUserFromDescUpdate(req))
 	if err != nil {
 		return &emptypb.Empty{}, err
