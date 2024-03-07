@@ -1,34 +1,22 @@
 package main
 
 import (
-	"fmt"
-	desc "github.com/Sysleec/auth/pkg/user_v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"context"
 	"log"
-	"net"
+
+	"github.com/Sysleec/auth/internal/app"
 )
 
-const grpcPort = ":50051"
-
-type server struct {
-	desc.UnimplementedUserV1Server
-}
-
 func main() {
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost%s", grpcPort))
+	ctx := context.Background()
+
+	a, err := app.NewApp(ctx)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("failed to init app: %s", err.Error())
 	}
 
-	s := grpc.NewServer()
-	reflection.Register(s)
-	desc.RegisterUserV1Server(s, &server{})
-
-	log.Printf("server listening at %v", lis.Addr())
-
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	err = a.Run()
+	if err != nil {
+		log.Fatalf("failed to run app: %s", err.Error())
 	}
-
 }
