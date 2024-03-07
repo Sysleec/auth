@@ -18,7 +18,6 @@ func (s *serverAuth) GetRefreshToken(ctx context.Context, token string) (string,
 	}
 
 	refreshTokenSecretKey := jwt.RefreshTokenSecretKey()
-
 	claims, err := utils.VerifyToken(token, []byte(refreshTokenSecretKey))
 	if err != nil {
 		return "", status.Errorf(codes.Aborted, "invalid refresh token")

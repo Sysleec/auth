@@ -8,6 +8,7 @@ import (
 	"github.com/Sysleec/auth/internal/repository"
 	"github.com/Sysleec/auth/internal/repository/user/converter"
 	modelRepo "github.com/Sysleec/auth/internal/repository/user/model"
+	"github.com/Sysleec/auth/internal/utils"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	sq "github.com/Masterminds/squirrel"
@@ -35,10 +36,16 @@ func NewRepo(db db.Client) repository.UserRepository {
 }
 
 func (r *repo) Create(ctx context.Context, usr *model.User) (int64, error) {
+
+	hPass, err := utils.HashPassword(usr.Password)
+	if err != nil {
+		return 0, err
+	}
+
 	builder := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
-		Columns(nameColumn, emailColumn, passColumn).
-		Values(usr.Name, usr.Email, usr.Password).
+		Columns(nameColumn, emailColumn, passColumn, roleColumn).
+		Values(usr.Name, usr.Email, hPass, usr.Role).
 		Suffix("RETURNING id")
 
 	query, args, err := builder.ToSql()

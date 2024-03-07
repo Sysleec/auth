@@ -16,7 +16,7 @@ const (
 	accessTokenExpiration  = 1 * time.Minute
 )
 
-func (s *serverAuth) Login(ctx context.Context, info *model.UserClaims) (string, error) {
+func (s *serverAuth) Login(ctx context.Context, info *model.LoginClaims) (string, error) {
 	jwt, err := env.NewJWTConfig()
 	if err != nil {
 		return "", err
@@ -24,10 +24,11 @@ func (s *serverAuth) Login(ctx context.Context, info *model.UserClaims) (string,
 
 	refreshTokenSecretKey := jwt.RefreshTokenSecretKey()
 
-	r, err := s.loginRepository.GetUserRole(ctx, info)
+	r, err := s.loginRepository.Login(ctx, info)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
+
 	refreshToken, err := utils.GenerateToken(model.UserInfo{
 		Username: info.Username,
 		Role:     r,

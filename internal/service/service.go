@@ -20,7 +20,7 @@ type AccessService interface {
 }
 
 type AuthService interface {
-	Login(ctx context.Context, info *model.UserClaims) (string, error)
+	Login(ctx context.Context, info *model.LoginClaims) (string, error)
 	GetAccessToken(ctx context.Context, token string) (string, error)
 	GetRefreshToken(ctx context.Context, token string) (string, error)
 }

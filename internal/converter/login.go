@@ -5,8 +5,9 @@ import (
 	desc "github.com/Sysleec/auth/pkg/auth_v1"
 )
 
-func ToUserClaimsFromLogin(req *desc.LoginRequest) *model.UserClaims {
-	return &model.UserClaims{
+func ToUserClaimsFromLogin(req *desc.LoginRequest) *model.LoginClaims {
+	return &model.LoginClaims{
 		Username: req.GetUsername(),
+		Password: req.GetPassword(),
 	}
 }

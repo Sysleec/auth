@@ -11,3 +11,8 @@ type UserClaims struct {
 	Username string `json:"username"`
 	Role     int32  `json:"role"`
 }
+
+type LoginClaims struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
