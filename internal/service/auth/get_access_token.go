@@ -2,18 +2,24 @@ package login
 
 import (
 	"context"
-	"os"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/Sysleec/auth/internal/config/env"
 	"github.com/Sysleec/auth/internal/model"
 	"github.com/Sysleec/auth/internal/utils"
 )
 
 func (s *serverAuth) GetAccessToken(ctx context.Context, token string) (string, error) {
-	accessTokenSecretKey := os.Getenv("accessTokenSecretKey")
-	refreshTokenSecretKey := os.Getenv("refreshTokenSecretKey")
+	jwt, err := env.NewJWTConfig()
+	if err != nil {
+		return "", err
+	}
+
+	accessTokenSecretKey := jwt.AccessTokenSecretKey()
+	refreshTokenSecretKey := jwt.RefreshTokenSecretKey()
+
 	claims, err := utils.VerifyToken(token, []byte(refreshTokenSecretKey))
 	if err != nil {
 		return "", status.Errorf(codes.Aborted, "invalid refresh token")

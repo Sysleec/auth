@@ -5,21 +5,26 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/Sysleec/auth/internal/config/env"
 	"github.com/Sysleec/auth/internal/utils"
 	"google.golang.org/grpc/metadata"
 )
 
 const (
-	grpcPort   = 50051
 	authPrefix = "Bearer "
-
-	refreshTokenSecretKey = "W4/X+LLjehdxptt4YgGFCvMpq5ewptpZZYRHY6A72g0="
-	accessTokenSecretKey  = "VqvguGiffXILza1f44TWXowDT4zwf03dtXmqWW4SYyE="
 )
 
 var accessibleRoles map[string]int32
 
 func (s *servAccess) Check(ctx context.Context, endpointAddress string) error {
+
+	jwt, err := env.NewJWTConfig()
+	if err != nil {
+		return err
+	}
+
+	accessTokenSecretKey := jwt.AccessTokenSecretKey()
+
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return errors.New("metadata is not provided")

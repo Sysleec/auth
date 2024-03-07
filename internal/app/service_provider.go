@@ -28,6 +28,7 @@ type serviceProvider struct {
 	grpcConfig    config.GRPCConfig
 	httpConfig    config.HTTPConfig
 	swaggerConfig config.SwaggerConfig
+	jwtConfig     config.JWTConfig
 
 	dbClient         db.Client
 	txManager        db.TxManager
@@ -85,6 +86,17 @@ func (s *serviceProvider) HTTPConfig() config.HTTPConfig {
 	}
 
 	return s.httpConfig
+}
+
+func (s *serviceProvider) JWTConfig() config.JWTConfig {
+	if s.jwtConfig == nil {
+		_, err := env.NewJWTConfig()
+		if err != nil {
+			log.Fatalf("failed to get jwt config: %s", err.Error())
+		}
+	}
+
+	return s.jwtConfig
 }
 
 func (s *serviceProvider) SwaggerConfig() config.SwaggerConfig {

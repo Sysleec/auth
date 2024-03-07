@@ -2,11 +2,11 @@ package login
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"github.com/pkg/errors"
 
+	"github.com/Sysleec/auth/internal/config/env"
 	"github.com/Sysleec/auth/internal/model"
 	"github.com/Sysleec/auth/internal/utils"
 )
@@ -17,7 +17,13 @@ const (
 )
 
 func (s *serverAuth) Login(ctx context.Context, info *model.UserClaims) (string, error) {
-	refreshTokenSecretKey := os.Getenv("refreshTokenSecretKey")
+	jwt, err := env.NewJWTConfig()
+	if err != nil {
+		return "", err
+	}
+
+	refreshTokenSecretKey := jwt.RefreshTokenSecretKey()
+
 	r, err := s.loginRepository.GetUserRole(ctx, info)
 	if err != nil {
 		return "", nil
