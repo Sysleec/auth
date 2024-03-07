@@ -18,7 +18,7 @@ func (s *serverAuth) GetAccessToken(ctx context.Context, token string) (string, 
 	if err != nil {
 		return "", status.Errorf(codes.Aborted, "invalid refresh token")
 	}
-	r, err := s.loginRepository.GetUserRole(ctx)
+	r, err := s.loginRepository.GetUserRole(ctx, claims)
 	if err != nil {
 		return "", nil
 	}

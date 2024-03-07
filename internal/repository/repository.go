@@ -23,5 +23,5 @@ type AuthRepository interface {
 	Login(ctx context.Context, info *model.UserClaims) (string, error)
 	GetAccessToken(ctx context.Context, token string) (string, error)
 	GetRefreshToken(ctx context.Context, token string) (string, error)
-	GetUserRole(ctx context.Context) (int32, error)
+	GetUserRole(ctx context.Context, info *model.UserClaims) (int32, error)
 }
