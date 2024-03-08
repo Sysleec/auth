@@ -19,6 +19,7 @@ func (s *serverAuth) GetAccessToken(ctx context.Context, token string) (string, 
 
 	accessTokenSecretKey := jwt.AccessTokenSecretKey()
 	refreshTokenSecretKey := jwt.RefreshTokenSecretKey()
+	accessTokenExpiration := jwt.AccessTokenExpiration()
 
 	claims, err := utils.VerifyToken(token, []byte(refreshTokenSecretKey))
 	if err != nil {
