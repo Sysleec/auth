@@ -2,8 +2,6 @@ package pg
 
 import (
 	"context"
-	"fmt"
-	"log"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgconn"
@@ -12,6 +10,7 @@ import (
 
 	"github.com/Sysleec/auth/internal/client/db"
 	"github.com/Sysleec/auth/internal/client/db/prettier"
+	"github.com/Sysleec/auth/internal/logger"
 )
 
 type key string
@@ -106,9 +105,11 @@ func MakeContextTx(ctx context.Context, tx pgx.Tx) context.Context {
 
 func logQuery(_ context.Context, q db.Query, args ...interface{}) {
 	prettyQuery := prettier.Pretty(q.QueryRaw, prettier.PlaceholderDollar, args...)
-	log.Println(
-		//ctx,
-		fmt.Sprintf("sql: %s\n", q.Name),
-		fmt.Sprintf("query: %s", prettyQuery),
-	)
+	// logger.Debugf("ctx: %v", ctx)
+	logger.Debugf("sql: %s\nquery: %s", q.Name, prettyQuery)
+	// log.Println(
+	// 	//ctx,
+	// 	fmt.Sprintf("sql: %s\n", q.Name),
+	// 	fmt.Sprintf("query: %s", prettyQuery),
+	// )
 }
