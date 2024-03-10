@@ -29,6 +29,7 @@ type serviceProvider struct {
 	httpConfig    config.HTTPConfig
 	swaggerConfig config.SwaggerConfig
 	jwtConfig     config.JWTConfig
+	loggerConfig  config.LoggerConfig
 
 	dbClient         db.Client
 	txManager        db.TxManager
@@ -110,6 +111,19 @@ func (s *serviceProvider) SwaggerConfig() config.SwaggerConfig {
 	}
 
 	return s.swaggerConfig
+}
+
+func (s *serviceProvider) LoggerConfig() config.LoggerConfig {
+	if s.loggerConfig == nil {
+		cfg, err := env.NewLoggerConfig()
+		if err != nil {
+			log.Fatalf("failed to get logger config: %s", err.Error())
+		}
+
+		s.loggerConfig = cfg
+	}
+
+	return s.loggerConfig
 }
 
 func (s *serviceProvider) DBClient(ctx context.Context) db.Client {

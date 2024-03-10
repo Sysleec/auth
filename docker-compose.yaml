@@ -20,7 +20,9 @@ services:
     build:
       context: .
       dockerfile: migration.Dockerfile
-    restart: on-failure
     environment:
       DB_HOST: pg
-
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 15

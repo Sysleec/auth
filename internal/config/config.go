@@ -30,6 +30,10 @@ type JWTConfig interface {
 	RefreshTokenSecretKey() string
 }
 
+type LoggerConfig interface {
+	LogLevel() string
+}
+
 // Load loads configuration from .env file
 func Load(path string) error {
 	err := godotenv.Load(path)
