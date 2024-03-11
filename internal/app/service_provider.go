@@ -30,6 +30,7 @@ type serviceProvider struct {
 	swaggerConfig config.SwaggerConfig
 	jwtConfig     config.JWTConfig
 	loggerConfig  config.LoggerConfig
+	promConfig    config.PromConfig
 
 	dbClient         db.Client
 	txManager        db.TxManager
@@ -124,6 +125,19 @@ func (s *serviceProvider) LoggerConfig() config.LoggerConfig {
 	}
 
 	return s.loggerConfig
+}
+
+func (s *serviceProvider) PromConfig() config.PromConfig {
+	if s.promConfig == nil {
+		cfg, err := env.NewPrometheusConfig()
+		if err != nil {
+			log.Fatalf("failed to get prometheus config: %s", err.Error())
+		}
+
+		s.promConfig = cfg
+	}
+
+	return s.promConfig
 }
 
 func (s *serviceProvider) DBClient(ctx context.Context) db.Client {

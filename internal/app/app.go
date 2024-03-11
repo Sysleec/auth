@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/natefinch/lumberjack"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
 	"go.uber.org/zap"
@@ -20,6 +21,7 @@ import (
 	"github.com/Sysleec/auth/internal/config"
 	"github.com/Sysleec/auth/internal/interceptor"
 	"github.com/Sysleec/auth/internal/logger"
+	"github.com/Sysleec/auth/internal/metric"
 	descAccess "github.com/Sysleec/auth/pkg/access_v1"
 	descAuth "github.com/Sysleec/auth/pkg/auth_v1"
 	desc "github.com/Sysleec/auth/pkg/user_v1"
@@ -43,6 +45,7 @@ type App struct {
 	grpcServer      *grpc.Server
 	httpServer      *http.Server
 	swaggerServer   *http.Server
+	promServer      *http.Server
 }
 
 // NewApp creates a new app
@@ -67,7 +70,7 @@ func (a *App) Run() error {
 	logger.Init(a.getCore(a.getAtomicLevel()))
 
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		defer wg.Done()
@@ -96,6 +99,15 @@ func (a *App) Run() error {
 		}
 	}()
 
+	go func() {
+		defer wg.Done()
+
+		err := a.runPromServer()
+		if err != nil {
+			log.Fatalf("failed to run Prometheus server: %v", err)
+		}
+	}()
+
 	wg.Wait()
 
 	return nil
@@ -108,6 +120,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initGrpcServer,
 		a.initHTTPServer,
 		a.initSwaggerServer,
+		a.initPromServer,
 	}
 
 	for _, f := range inits {
@@ -143,6 +156,7 @@ func (a *App) initGrpcServer(ctx context.Context) error {
 			grpcMiddleware.ChainUnaryServer(
 				interceptor.LogInterceptor,
 				interceptor.ValidateInterceptor,
+				interceptor.MetricsInterceptor,
 			),
 		),
 	)
@@ -200,6 +214,22 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 	return nil
 }
 
+func (a *App) initPromServer(ctx context.Context) error {
+	mux := http.NewServeMux()
+	err := metric.Init(ctx)
+	if err != nil {
+		return err
+	}
+	mux.Handle("/metrics", promhttp.Handler())
+
+	a.promServer = &http.Server{
+		Addr:    a.serviceProvider.PromConfig().Address(),
+		Handler: mux,
+	}
+
+	return nil
+}
+
 func (a *App) runGRPCServer() error {
 	log.Printf("GRPC server is running on %s", a.serviceProvider.GRPCConfig().Address())
 
@@ -231,6 +261,17 @@ func (a *App) runSwaggerServer() error {
 	log.Printf("Swagger server is running on %s", a.serviceProvider.SwaggerConfig().Address())
 
 	err := a.swaggerServer.ListenAndServe()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) runPromServer() error {
+	log.Printf("Prometheus server is running on %s", a.serviceProvider.PromConfig().Address())
+
+	err := a.promServer.ListenAndServe()
 	if err != nil {
 		return err
 	}
