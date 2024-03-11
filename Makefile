@@ -21,7 +21,27 @@ install-deps:
 	GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.19.0
 	GOBIN=$(LOCAL_BIN) go install github.com/rakyll/statik@v0.1.7
 
+grpc-load-test:
+	ghz \
+		--proto api/user_v1/user.proto \
+		--import-paths=vendor.protogen \
+		--call user_v1.UserV1.Get \
+		--data '{"id": 1}' \
+		--rps 100 \
+		--total 5000 \
+		--insecure \
+		localhost:50061
 
+grpc-error-load-test:
+	ghz \
+		--proto api/user_v1/user.proto \
+		--import-paths=vendor.protogen \
+		--call user_v1.UserV1.Get \
+		--data '{"id": 0}' \
+		--rps 100 \
+		--total 3000 \
+		--insecure \
+		localhost:50061
 
 get-deps:
 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go

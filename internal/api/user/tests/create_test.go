@@ -8,6 +8,7 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 
 	"github.com/Sysleec/auth/internal/api/user"
 	"github.com/Sysleec/auth/internal/model"
@@ -67,6 +68,7 @@ func TestCreate(t *testing.T) {
 			want: res,
 			err:  nil,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
+				zap.NewNop()
 				mock := serviceMocks.NewUserServiceMock(mc)
 				mock.CreateMock.Expect(ctx, usr).Return(id, nil)
 				return mock

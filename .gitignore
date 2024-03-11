@@ -10,6 +10,7 @@
 .idea
 /bin
 .vscode
+/logs
 
 
 # Test binary, built with `go test -c`

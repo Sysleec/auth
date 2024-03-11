@@ -2,9 +2,10 @@ package user
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/Sysleec/auth/internal/converter"
+	"github.com/Sysleec/auth/internal/model"
 	desc "github.com/Sysleec/auth/pkg/user_v1"
 )
 
@@ -12,10 +13,13 @@ import (
 func (s *Implementation) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
 	user, err := s.userService.Get(ctx, req.GetId())
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, model.ErrUserNotFound):
+			return nil, model.ErrUserNotFound
+		default:
+			return nil, err
+		}
 	}
-
-	fmt.Printf("got user - Id: %d | Name: %s | Email: %s\n", user.ID, user.Name, user.Email)
 
 	return converter.ToUserFromService(user), nil
 }
