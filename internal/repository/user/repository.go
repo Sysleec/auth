@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Sysleec/auth/internal/client/db"
 	"github.com/Sysleec/auth/internal/model"
@@ -9,6 +10,7 @@ import (
 	"github.com/Sysleec/auth/internal/repository/user/converter"
 	modelRepo "github.com/Sysleec/auth/internal/repository/user/model"
 	"github.com/Sysleec/auth/internal/utils"
+	"github.com/jackc/pgx/v4"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	sq "github.com/Masterminds/squirrel"
@@ -87,7 +89,12 @@ func (r *repo) Get(ctx context.Context, id int64) (*model.User, error) {
 	var usr modelRepo.User
 	err = r.db.DB().ScanOneContext(ctx, &usr, q, args...)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, model.ErrUserNotFound
+		default:
+			return nil, err
+		}
 	}
 
 	return converter.ToUserFromRepo(&usr), nil
