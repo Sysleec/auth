@@ -80,7 +80,7 @@ func TestGet(t *testing.T) {
 			err:  nil,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.GetMock.Expect(ctx, id).Return(serviceRes, nil)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(serviceRes, nil)
 				return mock
 			},
 		},
@@ -94,7 +94,7 @@ func TestGet(t *testing.T) {
 			err:  serviceErr,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.GetMock.Expect(ctx, id).Return(nil, serviceErr)
+				mock.GetMock.Expect(minimock.AnyContext, id).Return(nil, serviceErr)
 				return mock
 			},
 		},
@@ -108,7 +108,7 @@ func TestGet(t *testing.T) {
 			userServiceMock := tt.userServiceMock(mc)
 			api := user.NewImplementation(userServiceMock)
 
-			res, err := api.Get(tt.args.ctx, tt.args.req)
+			res, err := api.Get(context.Background(), tt.args.req)
 			require.Equal(t, tt.err, err)
 			require.Equal(t, tt.want, res)
 		})

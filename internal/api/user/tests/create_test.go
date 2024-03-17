@@ -70,7 +70,7 @@ func TestCreate(t *testing.T) {
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				zap.NewNop()
 				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, usr).Return(id, nil)
+				mock.CreateMock.Expect(minimock.AnyContext, usr).Return(id, nil)
 				return mock
 			},
 		},
@@ -84,7 +84,7 @@ func TestCreate(t *testing.T) {
 			err:  serviceErr,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, usr).Return(0, serviceErr)
+				mock.CreateMock.Expect(minimock.AnyContext, usr).Return(0, serviceErr)
 				return mock
 			},
 		},
@@ -98,7 +98,7 @@ func TestCreate(t *testing.T) {
 			userServiceMock := tt.userServiceMock(mc)
 			api := user.NewImplementation(userServiceMock)
 
-			res, err := api.Create(tt.args.ctx, tt.args.req)
+			res, err := api.Create(context.Background(), tt.args.req)
 			require.Equal(t, tt.err, err)
 			require.Equal(t, tt.want, res)
 		})
