@@ -8,9 +8,12 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/Sysleec/auth/internal/api/user"
+	"github.com/Sysleec/auth/internal/logger"
 	"github.com/Sysleec/auth/internal/model"
 	"github.com/Sysleec/auth/internal/service"
 	serviceMocks "github.com/Sysleec/auth/internal/service/mocks"
@@ -19,6 +22,10 @@ import (
 
 func TestGet(t *testing.T) {
 	t.Parallel()
+
+	core, _ := observer.New(zap.InfoLevel)
+	logger.Init(core)
+
 	type userServiceMockFunc func(mc *minimock.Controller) service.UserService
 
 	type args struct {
