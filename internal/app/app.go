@@ -9,8 +9,14 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
+	"github.com/Sysleec/auth/internal/rate_limiter"
+	"github.com/sony/gobreaker"
+
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/natefinch/lumberjack"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/cors"
@@ -22,6 +28,7 @@ import (
 	"github.com/Sysleec/auth/internal/interceptor"
 	"github.com/Sysleec/auth/internal/logger"
 	"github.com/Sysleec/auth/internal/metric"
+	"github.com/Sysleec/auth/internal/tracing"
 	descAccess "github.com/Sysleec/auth/pkg/access_v1"
 	descAuth "github.com/Sysleec/auth/pkg/auth_v1"
 	desc "github.com/Sysleec/auth/pkg/user_v1"
@@ -31,6 +38,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+)
+
+const (
+	serviceName = "auth-service"
+
+	rpsLimit  = 10
+	cbMaxReq  = 3
+	cbTimeout = 5
 )
 
 var configPath string
@@ -68,6 +83,7 @@ func (a *App) Run() error {
 	}()
 
 	logger.Init(a.getCore(a.getAtomicLevel()))
+	tracing.Init(logger.Logger(), serviceName)
 
 	wg := sync.WaitGroup{}
 	wg.Add(4)
@@ -150,6 +166,22 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGrpcServer(ctx context.Context) error {
+
+	rateLimiter := rate_limiter.NewTokenBucketLimiter(ctx, rpsLimit, time.Second)
+
+	cb := gobreaker.NewCircuitBreaker(gobreaker.Settings{
+		Name:        serviceName,
+		MaxRequests: cbMaxReq,
+		Timeout:     cbTimeout * time.Second,
+		ReadyToTrip: func(counts gobreaker.Counts) bool {
+			failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+			return failureRatio >= 0.6
+		},
+		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+			logger.Infof("Circuit Breaker: %s, changed from %v, to %v\n", name, from, to)
+		},
+	})
+
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
 		grpc.UnaryInterceptor(
@@ -157,6 +189,9 @@ func (a *App) initGrpcServer(ctx context.Context) error {
 				interceptor.LogInterceptor,
 				interceptor.ValidateInterceptor,
 				interceptor.MetricsInterceptor,
+				interceptor.ServerTracingInterceptor,
+				interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
+				interceptor.NewCircuitBreakerInterceptor(cb).Unary,
 			),
 		),
 	)
@@ -175,6 +210,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer())),
 	}
 	err := desc.RegisterUserV1HandlerFromEndpoint(ctx, mux, a.serviceProvider.GRPCConfig().Address(), opts)
 	if err != nil {

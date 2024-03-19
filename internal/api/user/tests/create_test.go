@@ -9,8 +9,10 @@ import (
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 
 	"github.com/Sysleec/auth/internal/api/user"
+	"github.com/Sysleec/auth/internal/logger"
 	"github.com/Sysleec/auth/internal/model"
 	"github.com/Sysleec/auth/internal/service"
 	serviceMocks "github.com/Sysleec/auth/internal/service/mocks"
@@ -19,6 +21,10 @@ import (
 
 func TestCreate(t *testing.T) {
 	t.Parallel()
+
+	core, _ := observer.New(zap.InfoLevel)
+	logger.Init(core)
+
 	type userServiceMockFunc func(mc *minimock.Controller) service.UserService
 
 	type args struct {
@@ -68,9 +74,8 @@ func TestCreate(t *testing.T) {
 			want: res,
 			err:  nil,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
-				zap.NewNop()
 				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, usr).Return(id, nil)
+				mock.CreateMock.Expect(minimock.AnyContext, usr).Return(id, nil)
 				return mock
 			},
 		},
@@ -84,7 +89,7 @@ func TestCreate(t *testing.T) {
 			err:  serviceErr,
 			userServiceMock: func(mc *minimock.Controller) service.UserService {
 				mock := serviceMocks.NewUserServiceMock(mc)
-				mock.CreateMock.Expect(ctx, usr).Return(0, serviceErr)
+				mock.CreateMock.Expect(minimock.AnyContext, usr).Return(0, serviceErr)
 				return mock
 			},
 		},
@@ -98,7 +103,7 @@ func TestCreate(t *testing.T) {
 			userServiceMock := tt.userServiceMock(mc)
 			api := user.NewImplementation(userServiceMock)
 
-			res, err := api.Create(tt.args.ctx, tt.args.req)
+			res, err := api.Create(context.Background(), tt.args.req)
 			require.Equal(t, tt.err, err)
 			require.Equal(t, tt.want, res)
 		})
