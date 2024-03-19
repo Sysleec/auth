@@ -2,12 +2,18 @@ package user
 
 import (
 	"context"
+	"time"
 
 	"github.com/Sysleec/auth/internal/model"
 )
 
+const defaultTimeout = 5 //sec
+
 func (s *serv) Create(ctx context.Context, usr *model.User) (int64, error) {
 	var id int64
+
+	ctx, cancel := context.WithTimeout(ctx, defaultTimeout*time.Second)
+	defer cancel()
 
 	err := s.txManager.ReadCommitted(ctx, func(ctx context.Context) error {
 		var errTx error

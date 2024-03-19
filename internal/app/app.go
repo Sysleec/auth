@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
+
+	"github.com/Sysleec/auth/internal/rate_limiter"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/natefinch/lumberjack"
@@ -38,6 +41,8 @@ import (
 
 const (
 	serviceName = "auth"
+
+	rpsLimit = 10
 )
 
 var configPath string
@@ -158,6 +163,9 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGrpcServer(ctx context.Context) error {
+
+	rateLimiter := rate_limiter.NewTokenBucketLimiter(ctx, rpsLimit, time.Second)
+
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
 		grpc.UnaryInterceptor(
@@ -166,6 +174,7 @@ func (a *App) initGrpcServer(ctx context.Context) error {
 				interceptor.ValidateInterceptor,
 				interceptor.MetricsInterceptor,
 				interceptor.ServerTracingInterceptor,
+				interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
 			),
 		),
 	)
