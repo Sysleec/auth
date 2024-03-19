@@ -192,6 +192,7 @@ func (a *App) initGrpcServer(ctx context.Context) error {
 				interceptor.ServerTracingInterceptor,
 				interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
 				interceptor.NewCircuitBreakerInterceptor(cb).Unary,
+				interceptor.ErrorCodesInterceptor,
 			),
 		),
 	)
