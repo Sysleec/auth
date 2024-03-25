@@ -75,3 +75,22 @@ func (s *servAccess) accessibleRoles(ctx context.Context) (map[string]int32, err
 
 	return accessibleRoles, nil
 }
+
+func accessToken(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", errors.New("metadat is not provided")
+	}
+	authHeader, ok := md["authorization"]
+
+	if !ok || len(authHeader) == 0 {
+		return "", errors.New("authorization header is not provided")
+	}
+
+	if !strings.HasPrefix(authHeader[0], authPrefix) {
+		return "", errors.New("invalid authrization header format")
+	}
+
+	accesToken := strings.TrimPrefix(authHeader[0], authPrefix)
+	return accesToken, nil
+}
