@@ -17,6 +17,14 @@
   ],
   "paths": {},
   "definitions": {
+    "access_v1GetNameResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {

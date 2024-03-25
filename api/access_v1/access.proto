@@ -8,8 +8,14 @@ option go_package = "github.com/Sysleec/auth/grpc/pkg/auth_v1;auth_v1";
 
 service AccessV1 {
   rpc Check(CheckRequest) returns (google.protobuf.Empty);
+  rpc GetName(google.protobuf.Empty) returns(GetNameResponse);
+
 }
 
 message CheckRequest {
   string endpoint_address = 1;
+}
+
+message GetNameResponse{
+  string name = 1;
 }
