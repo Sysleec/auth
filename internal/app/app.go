@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/Sysleec/auth/internal/rate_limiter"
-	"github.com/sony/gobreaker"
 
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/natefinch/lumberjack"
@@ -169,18 +168,18 @@ func (a *App) initGrpcServer(ctx context.Context) error {
 
 	rateLimiter := rate_limiter.NewTokenBucketLimiter(ctx, rpsLimit, time.Second)
 
-	cb := gobreaker.NewCircuitBreaker(gobreaker.Settings{
-		Name:        serviceName,
-		MaxRequests: cbMaxReq,
-		Timeout:     cbTimeout * time.Second,
-		ReadyToTrip: func(counts gobreaker.Counts) bool {
-			failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
-			return failureRatio >= 0.6
-		},
-		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
-			logger.Infof("Circuit Breaker: %s, changed from %v, to %v\n", name, from, to)
-		},
-	})
+	// cb := gobreaker.NewCircuitBreaker(gobreaker.Settings{
+	// 	Name:        serviceName,
+	// 	MaxRequests: cbMaxReq,
+	// 	Timeout:     cbTimeout * time.Second,
+	// 	ReadyToTrip: func(counts gobreaker.Counts) bool {
+	// 		failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+	// 		return failureRatio >= 0.6
+	// 	},
+	// 	OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+	// 		logger.Infof("Circuit Breaker: %s, changed from %v, to %v\n", name, from, to)
+	// 	},
+	// })
 
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
@@ -191,7 +190,7 @@ func (a *App) initGrpcServer(ctx context.Context) error {
 				interceptor.MetricsInterceptor,
 				interceptor.ServerTracingInterceptor,
 				interceptor.NewRateLimiterInterceptor(rateLimiter).Unary,
-				interceptor.NewCircuitBreakerInterceptor(cb).Unary,
+				//interceptor.NewCircuitBreakerInterceptor(cb).Unary,
 				interceptor.ErrorCodesInterceptor,
 			),
 		),
