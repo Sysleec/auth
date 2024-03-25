@@ -12,4 +12,5 @@ WORKDIR /root/
 COPY --from=builder /github.com/Sysleec/auth/source/bin/auth .
 COPY --from=builder /github.com/Sysleec/auth/source/.env .
 
+RUN chmod +x auth
 CMD ["./auth"]
