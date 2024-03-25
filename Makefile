@@ -143,3 +143,8 @@ vendor-proto:
 			mv vendor.protogen/openapiv2/protoc-gen-openapiv2/options/*.proto vendor.protogen/protoc-gen-openapiv2/options &&\
 			rm -rf vendor.protogen/openapiv2 ;\
 		fi
+
+docker-build:
+	docker build -t auth_serv .
+docker-run:
+	docker run -d -p 50061:50061 -p 2112:2112  -p 8081:8081 -p 8091:8091 -n auth_serv
