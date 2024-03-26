@@ -3,13 +3,17 @@ package access
 import (
 	"context"
 	"errors"
-	"os"
 
+	"github.com/Sysleec/auth/internal/config/env"
 	"github.com/Sysleec/auth/internal/utils"
 )
 
 func (s *servAccess) GetName(ctx context.Context) (string, error) {
-	accessTokenSecretKey := os.Getenv("accessTokenSecretKey")
+	jwt, err := env.NewJWTConfig()
+	if err != nil {
+		return "", err
+	}
+	accessTokenSecretKey := jwt.AccessTokenSecretKey()
 	accessToken, err := accessToken(ctx)
 
 	if err != nil {
